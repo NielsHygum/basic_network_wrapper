@@ -10,8 +10,7 @@
 
 #include <netinet/in.h>
 #include <future>
-#include "RingBuffer.h"
-#include <readerwriterqueue.h>
+#include <basic_ring_buffer.hpp>
 
 class NetworkWrapper {
 
@@ -49,7 +48,6 @@ public:
 
     std::mutex _ring_buffer_mutex;
     RingBuffer<1024*1024> _output_audio_ring_buffer;
-    moodycamel::ReaderWriterQueue<std::pair<std::array<char, _max_udp_frame_size>, size_t>> _output_audio_queue;
     bool send(const char * data, size_t size_of_data);
     std::pair<size_t, sockaddr_in> receiveData(char * data, size_t max_size);
 
