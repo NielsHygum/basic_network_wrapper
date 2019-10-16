@@ -39,8 +39,11 @@ private:
     void startReaderThread();
 
 
-    bool _receive_data_from_yourself = true;
+    bool _receive_data_from_yourself = false;
 
+    bool connect();
+    bool _receiver_connected = false;
+    bool _sender_connected = false;
 
 public:
 

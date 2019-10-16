@@ -22,6 +22,17 @@ NetworkWrapper::NetworkWrapper()
 
     _multicast_adress = std::string("224.0.0.199");
 
+    connect();
+
+}
+
+NetworkWrapper::~NetworkWrapper()
+{
+
+}
+
+bool NetworkWrapper::connect()
+{
     if(initListner())
     {
         //_multicast_adress = std::string("239.255.255.250");
@@ -35,17 +46,17 @@ NetworkWrapper::NetworkWrapper()
 
         } else {
             __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to initialize sender");
+            return false;
         }
 
     } else {
 
         __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to initialize listener");
+        return false;
+
     }
-}
 
-NetworkWrapper::~NetworkWrapper()
-{
-
+    return true;
 }
 
 bool NetworkWrapper::initListner()
@@ -58,6 +69,8 @@ bool NetworkWrapper::initListner()
     if (_listner_fd < 0)
     {
         __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to create listener socket");
+
+        _receiver_connected = false;
         return false;
     } else {
         __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully created listener socket");
@@ -71,6 +84,7 @@ bool NetworkWrapper::initListner()
         // "Reusing ADDR failed"
         __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "listener address reuse failed");
 
+        _receiver_connected = false;
         return false;
     } else {
 
@@ -96,6 +110,7 @@ bool NetworkWrapper::initListner()
 
         __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "listener failed to bind socket with code %d = %s", errno, strerror(errno));
 
+        _receiver_connected = false;
         return false;
     } else {
 
@@ -106,11 +121,13 @@ bool NetworkWrapper::initListner()
     // use setsockopt() to request that the kernel join a multicast group
     //
 
+
     _mreq.imr_multiaddr.s_addr = inet_addr(_multicast_adress.c_str());
     _mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     if ( setsockopt( _listner_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &_mreq, sizeof(_mreq)) < 0)
     {
         __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed listner setsockopt udp multicast membership");
+        _receiver_connected = false;
         return false;
     } else {
 
@@ -147,6 +164,8 @@ bool NetworkWrapper::initListner()
 
     }
 
+    _receiver_connected = true;
+
     return true;
 }
 
@@ -159,6 +178,7 @@ bool NetworkWrapper::initSender()
     if (_sender_fd < 0)
     {
         __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to create sender socket with error code %d = %s", errno, strerror(errno));
+        _sender_connected = false;
         return false;
     } else {
         __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully created sender socket");
@@ -168,6 +188,8 @@ bool NetworkWrapper::initSender()
     _multicast_sockaddr.sin_family = AF_INET;
     _multicast_sockaddr.sin_addr.s_addr =  inet_addr(_multicast_adress.c_str());//_mreq.imr_multiaddr.s_addr;
     _multicast_sockaddr.sin_port = htons(_port);//_destination_addr.sin_port;
+
+    _sender_connected = true;
 
     return true;
 }
@@ -201,6 +223,9 @@ std::pair<size_t, sockaddr_in> NetworkWrapper::receiveData(char * data, size_t m
 {
     struct sockaddr_in source_addr;
     socklen_t addrlen = sizeof(source_addr);
+
+    if(!_receiver_connected)
+        return std::make_pair(0, source_addr);
 
     size_t total_bytes_received = 0;
     do
@@ -267,6 +292,14 @@ void NetworkWrapper::startReaderThread()
 
 bool NetworkWrapper::send(const char * data, size_t size_of_data)
 {
+    if(!_sender_connected)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "No sender socket connected - failed sending data");
+
+        return false;
+    }
+
+
     size_t total_bytes_send = 0;
 
     while(total_bytes_send < size_of_data)
