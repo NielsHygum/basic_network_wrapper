@@ -39,7 +39,7 @@ private:
     void startReaderThread();
 
 
-    bool _receive_data_from_yourself = false;
+    bool _receive_data_from_yourself = true;
 
     bool connect();
     bool _receiver_connected = false;
