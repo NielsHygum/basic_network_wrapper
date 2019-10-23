@@ -2,9 +2,7 @@
 // Created by nni on 22.11.18.
 //
 
-#ifndef BINAURALRADIO_NETWORK_WRAPPER_H
-#define BINAURALRADIO_NETWORK_WRAPPER_H
-
+#pragma once
 
 #include <string>
 
@@ -60,5 +58,3 @@ public:
     ~NetworkWrapper();
 };
 
-
-#endif //BINAURALRADIO_NETWORK_WRAPPER_H
