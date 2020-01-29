@@ -26,7 +26,7 @@ private:
 
     int _listner_fd;
     int _sender_fd;
-    int _port = 6000;
+    int _port = 1234;//6000;
 
     bool initListner();
     bool initSender();

@@ -20,7 +20,8 @@ NetworkWrapper::NetworkWrapper()
 {
     //_multicast_adress = std::string("239.0.0.1");
 
-    _multicast_adress = std::string("224.0.0.199");
+    //_multicast_adress = std::string("224.0.0.199");
+    _multicast_adress = std::string("239.0.0.190");
 
     connect();
 
