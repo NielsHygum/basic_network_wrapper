@@ -1,8 +1,8 @@
 //
 // Created by nni on 22.11.18.
 //
-
-#include <android/log.h>
+#define LOG_TAG "NetworkWrapper"
+#include <generic_log.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -37,22 +37,27 @@ bool NetworkWrapper::connect()
     if(initListner())
     {
         //_multicast_adress = std::string("239.255.255.250");
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully initialized listener");
+        //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully initialized listener");
+        LOGD("successfully initialized listener");
 
         //startReaderThread();
 
         if(initSender())
         {
-            __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully initialized sender");
+           // __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully initialized sender");
+            LOGD("successfully initialized sender");
 
         } else {
-            __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to initialize sender");
+           // __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to initialize sender");
+            LOGE("failed to initialize sender");
             return false;
         }
 
     } else {
 
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to initialize listener");
+       // __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to initialize listener");
+        LOGE("failed to initialize listener");
+
         return false;
 
     }
@@ -69,12 +74,14 @@ bool NetworkWrapper::initListner()
 
     if (_listner_fd < 0)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to create listener socket");
+        //__android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to create listener socket");
+        LOGE("failed to create listener socket");
 
         _receiver_connected = false;
         return false;
     } else {
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully created listener socket");
+        //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully created listener socket");
+        LOGD("successfully created listener socket");
     }
 
     // allow multiple sockets to use the same PORT number
@@ -83,13 +90,15 @@ bool NetworkWrapper::initListner()
     if (setsockopt( _listner_fd, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof(yes)) < 0)
     {
         // "Reusing ADDR failed"
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "listener address reuse failed");
+        //__android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "listener address reuse failed");
+        LOGE("listener address reuse failed");
 
         _receiver_connected = false;
         return false;
     } else {
 
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully set address reuse");
+        //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully set address reuse");
+        LOGD("successfully set address reuse");
 
     }
 
@@ -109,13 +118,15 @@ bool NetworkWrapper::initListner()
     if (error_code < 0)
     {
 
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "listener failed to bind socket with code %d = %s", errno, strerror(errno));
+        //__android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "listener failed to bind socket with code %d = %s", errno, strerror(errno));
+        LOGE("listener failed to bind socket with code %d = %s", errno, strerror(errno));
 
         _receiver_connected = false;
         return false;
     } else {
 
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "listener binded socket");
+       // __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "listener binded socket");
+        LOGD("listener binded socket");
 
     }
 
@@ -127,13 +138,16 @@ bool NetworkWrapper::initListner()
     _mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     if ( setsockopt( _listner_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &_mreq, sizeof(_mreq)) < 0)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed listner setsockopt udp multicast membership");
+        //__android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed listner setsockopt udp multicast membership");
+        LOGE("failed listner setsockopt udp multicast membership");
         _receiver_connected = false;
         return false;
     } else {
 
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "listener setsockopt set joined udp multicast group");
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "multicast ip: %s", inet_ntoa(_mreq.imr_multiaddr));
+       // __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "listener setsockopt set joined udp multicast group");
+        LOGD("listener setsockopt set joined udp multicast group");
+       // __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "multicast ip: %s", inet_ntoa(_mreq.imr_multiaddr));
+        LOGD("multicast ip: %s", inet_ntoa(_mreq.imr_multiaddr));
 
         struct ifaddrs * ifAddrStruct=NULL;
         struct ifaddrs * ifa=NULL;
@@ -151,12 +165,14 @@ bool NetworkWrapper::initListner()
                 char addressBuffer[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
                 //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
-                __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+               // __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+                LOGD("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
 
                 if(0 != strcmp(ifa->ifa_name, "lo"))
                 {
                     _my_ip.sin_addr = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-                    __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "setting this as my outgoing ip-interface: IP Address %s\n", inet_ntoa(_my_ip.sin_addr));
+                   // __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "setting this as my outgoing ip-interface: IP Address %s\n", inet_ntoa(_my_ip.sin_addr));
+                    LOGD("setting this as my outgoing ip-interface: IP Address %s\n", inet_ntoa(_my_ip.sin_addr));
                     break;
                 }
             }
@@ -178,11 +194,13 @@ bool NetworkWrapper::initSender()
 
     if (_sender_fd < 0)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to create sender socket with error code %d = %s", errno, strerror(errno));
+     //   __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed to create sender socket with error code %d = %s", errno, strerror(errno));
+        LOGE("failed to create sender socket with error code %d = %s", errno, strerror(errno));
         _sender_connected = false;
         return false;
     } else {
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully created sender socket");
+        //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully created sender socket");
+        LOGD("successfully created sender socket");
     }
 
     memset(&_multicast_sockaddr, 0, sizeof(_multicast_sockaddr));
@@ -207,10 +225,12 @@ void NetworkWrapper::readPrintLoop()
 
         if (nbytes < 0)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed rescfrom call, returned code: %d", nbytes);
+          //  __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed rescfrom call, returned code: %d", nbytes);
+            LOGE("failed rescfrom call, returned code: %d", nbytes);
         } else {
             //todo: maybe we should lock
-            __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "reveived %d bytes of data", nbytes);
+           // __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "reveived %d bytes of data", nbytes);
+           LOGD("failed rescfrom call, returned code: %d", nbytes);
             std::lock_guard<std::mutex> lock(_ring_buffer_mutex);
             _output_audio_ring_buffer.writeNewestDataToBuffer(msgbuf, nbytes);
         }
@@ -235,7 +255,8 @@ std::pair<size_t, sockaddr_in> NetworkWrapper::receiveData(char * data, size_t m
 
         if (nbytes < 0)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed rescvfrom call, returned code: %d", nbytes);
+           // __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed rescvfrom call, returned code: %d", nbytes);
+            LOGE("failed rescvfrom call, returned code: %d", nbytes);
 
             return std::make_pair(0, source_addr);
         } else {
@@ -282,11 +303,13 @@ void NetworkWrapper::startReaderThread()
 {
     if(_reader_thread == nullptr)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "starting reader thread");
+        //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "starting reader thread");
+        LOGD("starting reader thread");
         _reader_thread = new std::thread(&NetworkWrapper::readPrintLoop, this);
     } else {
 
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "cannot initialize new thread as reader thread is already initialized");
+       // __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "cannot initialize new thread as reader thread is already initialized");
+        LOGE("cannot initialize new thread as reader thread is already initialized");
 
     }
 }
@@ -295,7 +318,8 @@ bool NetworkWrapper::send(const char * data, size_t size_of_data)
 {
     if(!_sender_connected)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "No sender socket connected - failed sending data");
+//        __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "No sender socket connected - failed sending data");
+        LOGE("No sender socket connected - failed sending data");
 
         return false;
     }
@@ -309,7 +333,8 @@ bool NetworkWrapper::send(const char * data, size_t size_of_data)
 
         if (nbytes < 0)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed sending data, error code %d = %s", errno, strerror(errno));
+            //__android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed sending data, error code %d = %s", errno, strerror(errno));
+            LOGE("failed sending data, error code %d = %s", errno, strerror(errno));
             return false;
         } else {
 
