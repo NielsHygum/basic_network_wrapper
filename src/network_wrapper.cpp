@@ -21,7 +21,7 @@ NetworkWrapper::NetworkWrapper()
     //_multicast_adress = std::string("239.0.0.1");
 
     //_multicast_adress = std::string("224.0.0.199");
-    _multicast_adress = std::string("239.0.0.190");
+    //_multicast_adress = std::string("239.0.0.190");
 
     //connect();
 
@@ -30,6 +30,12 @@ NetworkWrapper::NetworkWrapper()
 NetworkWrapper::~NetworkWrapper()
 {
 
+}
+
+void NetworkWrapper::set(const std::string & multicast_ip, const int port)
+{
+    _multicast_adress = multicast_ip;
+    _port = port;
 }
 
 bool NetworkWrapper::connect()
@@ -67,6 +73,18 @@ bool NetworkWrapper::connect()
 
 bool NetworkWrapper::initListner()
 {
+    if(_port < 0)
+    {
+        LOGE("invalid port or port not set");
+        return false;
+    }
+
+    if(_multicast_adress.empty())
+    {
+        LOGE("multicast ip not set");
+
+        return false;
+    }
 
     // create what looks like an ordinary UDP socket
     //
@@ -190,6 +208,20 @@ bool NetworkWrapper::initSender()
 {
 // create what looks like an ordinary UDP socket
     //
+
+    if(_port < 0)
+    {
+        LOGE("invalid port or port not set");
+        return false;
+    }
+
+    if(_multicast_adress.empty())
+    {
+        LOGE("multicast ip not set");
+
+        return false;
+    }
+
     _sender_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (_sender_fd < 0)

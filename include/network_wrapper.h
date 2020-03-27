@@ -26,7 +26,7 @@ private:
 
     int _listner_fd;
     int _sender_fd;
-    int _port = 1234;//6000;
+    int _port = -1;//6000;
 
     //bool initListner();
     //bool initSender();
@@ -45,6 +45,7 @@ private:
 
 public:
 
+    void set(const std::string & multicast_ip, const int port);
     bool initListner();
     bool initSender();
 
