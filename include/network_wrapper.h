@@ -37,7 +37,7 @@ private:
     void startReaderThread();
 
 
-    bool _receive_data_from_yourself = false;
+    std::atomic<bool> _receive_data_from_yourself = {false};
 
     bool connect();
     bool _receiver_connected = false;
@@ -57,6 +57,9 @@ public:
     std::pair<size_t, sockaddr_in> receiveData(char * data, size_t max_size);
 
     bool isDataReceived(); //non-blocking call
+
+    bool isReceivingOwnMulticastData() const;
+    void receiveOwnMulticastData(bool enableMulticastData);
 
     NetworkWrapper();
     ~NetworkWrapper();

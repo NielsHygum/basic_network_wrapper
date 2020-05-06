@@ -371,7 +371,6 @@ bool NetworkWrapper::send(const char * data, size_t size_of_data)
         } else {
 
             total_bytes_send += static_cast<size_t >(nbytes);
-
             //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "successfully send: %.*s", nbytes, data);
         }
     }
@@ -399,4 +398,13 @@ bool NetworkWrapper::isDataReceived()
     }
 
     return false;
+}
+
+bool NetworkWrapper::isReceivingOwnMulticastData() const
+{
+    return _receive_data_from_yourself;
+}
+void NetworkWrapper::receiveOwnMulticastData(bool enableMulticastData)
+{
+    _receive_data_from_yourself = enableMulticastData;
 }
