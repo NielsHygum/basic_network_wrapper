@@ -55,6 +55,7 @@ public:
     RingBuffer<1024*1024> _output_audio_ring_buffer;
     bool send(const char * data, size_t size_of_data);
     std::pair<size_t, sockaddr_in> receiveData(char * data, size_t max_size);
+    std::pair<size_t, sockaddr_in> receiveFastData(char * data, size_t max_size);
 
     bool isDataReceived(); //non-blocking call
 
