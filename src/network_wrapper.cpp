@@ -280,32 +280,27 @@ std::pair<size_t, sockaddr_in> NetworkWrapper::receiveFastData(char * data, size
     if(!_receiver_connected)
         return std::make_pair(0, source_addr);
 
-    size_t total_bytes_received = 0;
+    size_t total_bytes_received;
 
-    int nbytes = recvfrom(_listner_fd, data + total_bytes_received, max_size - total_bytes_received,
-                          0, (struct sockaddr *) &source_addr, &addrlen);
+    do
+    {
+        int nbytes = recvfrom(_listner_fd, data + total_bytes_received, max_size - total_bytes_received,
+                              0, (struct sockaddr *) &source_addr, &addrlen);
 
-    if (nbytes < 0) {
-        // __android_log_print(ANDROID_LOG_ERROR, "NetworkWrapper", "failed rescvfrom call, returned code: %d", nbytes);
-        LOGE("failed rescvfrom call, returned code: %d", nbytes);
+        if (nbytes < 0) {
 
-        return std::make_pair(0, source_addr);
-    } else {
-        total_bytes_received += static_cast<size_t > (nbytes);
-    }
+            LOGE("failed rescvfrom call, returned code: %d", nbytes);
+
+            return std::make_pair(0, source_addr);
+        } else {
+            total_bytes_received = static_cast<size_t > (nbytes);
+        }
+
+    } while( (not _receive_data_from_yourself) and (source_addr.sin_addr.s_addr == _my_ip.sin_addr.s_addr));
 
 
     // source is in network byte order
-
-    if(_receive_data_from_yourself || (source_addr.sin_addr.s_addr != _my_ip.sin_addr.s_addr))
-    {
-        return std::make_pair(total_bytes_received, source_addr);
-    }
-    else {
-        //__android_log_print(ANDROID_LOG_DEBUG, "NetworkWrapper", "received data from yourself - throwing data away");
-        return std::make_pair(0, source_addr);
-    }
-
+    return std::make_pair(total_bytes_received, source_addr);
 }
 
 std::pair<size_t, sockaddr_in> NetworkWrapper::receiveData(char * data, size_t max_size)
