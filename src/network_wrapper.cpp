@@ -278,13 +278,17 @@ std::pair<size_t, sockaddr_in> NetworkWrapper::receiveFastData(char * data, size
     socklen_t addrlen = sizeof(source_addr);
 
     if(!_receiver_connected)
+    {
+        LOGE("receiver not connected");
         return std::make_pair(0, source_addr);
+    }
+
 
     size_t total_bytes_received;
 
     do
     {
-        int nbytes = recvfrom(_listner_fd, data + total_bytes_received, max_size - total_bytes_received,
+        int nbytes = recvfrom(_listner_fd, data, max_size,
                               0, (struct sockaddr *) &source_addr, &addrlen);
 
         if (nbytes < 0) {
